@@ -23,18 +23,13 @@ class One:  #定义One类
         self.energy=0   #攒齐能量条可以拉条
         self.power=2
         self.summoned = False
+        if self.name in ["三月七","杨叔"]: #对于三月七杨叔的特殊设置，当碰到三月七和杨叔的时候起效
+            self.attack=int(random.randint(1,5))    #三月七的攻击值只能在1.5之间
+        if self.name=="绝灭大君":   #对于绝灭大君的特殊设置
+            self.hp=80  #设置绝灭大君的血量为80
         self.hpmax=self.hp  #最大血量设置为开始血量（为图形化做准备）
-    def get_enemy(self,characters):
-        enemy = [e for e in characters if e.side!=self.side and e.hp>0] 
-        return enemy
-    def get_friend(self,characters):
-        friend=[f for f in characters if f.side==self.side and f.hp>0]
-        return friend
 
     def hit(self,rival):    #定义hit函数，用来攻击，self指代自己，rival指代敌人
-        #enemy = self.get_enemy(characters)
-        #if len(enemy)==0:   #enemy里面没有敌人
-             #pass
         if self.hp<=0:  #对于死亡角色
             pass    #直接跳过
         else :  #对于没死的角色
@@ -73,134 +68,89 @@ class One:  #定义One类
         friend.shield=friend.shield+7   #一次加7点盾
         say(f"{self.name}给{friend.name}加了7点盾，现在有{friend.shield}点盾")  #加盾结算
         print("---------------")    #加盾之后画个分割线
+
+
     def greatmove(self,characters):
-        pass
+        enemy = [e for e in characters if e.side!=self.side and e.hp>0] 
+        friend=[f for f in characters if f.side==self.side and f.hp>0] 
+        if len(enemy)==0:   #enemy里面没有敌人
+            return  
+        if self.name=="三月七":     #这个比较难，假如是三月七
+            say("三月七使出了'冰刻箭雨之时'")
+            boss=max(enemy,key=lambda char:char.attack)     
+            boss.time=0
+            count=min(2,len(enemy))
+            others=[e for e in enemy if e !=boss]
+            stop=random.sample(others,min(count,len(others)))
+            for a  in stop:
+                a.time = 0 
+            print("---------------") 
+        elif self.name=="开拓者":       #假如是开拓者
+            say("开拓者使出了'全胜·再见安打'")
+            for a in range(3):
+                alive_enemy = [e for e in characters if e.side != self.side and e.hp > 0]
+                if not alive_enemy: break # 没人了就别打了
+                rival = random.choice(alive_enemy)
+                self.hit(rival)
+        elif self.name=="丹恒":       #同上
+            say("丹恒使出了'洞天幻化，长梦—觉'")
+            boss=max(enemy,key=lambda char:char.attack)
+            self.power=6
+            self.hit(boss)
+            self.power =2      #重击
+        elif self.name=="杨叔":
+            say("杨叔使出了'拟似黑洞'")
+            buffer=max(friend,key=lambda char:char.attack)
+            buffer.time*=1.3     #拉条
+            print("---------------") 
+        elif self.name=="绝灭大君":
+            say("绝灭大君派出了4个幻胧作为帮手")
+            for i in range(1,5):
+                helper=One(f"幻胧{i}","毁灭")
+                helper.hp=10
+                helper.hpmax = 20
+                helper.attack=5
+                helper.speed=30
+                characters.append(helper)
+            print("---------------") 
+            
     def actions(self,characters):  #定义一次动作，只需要指代自己就行
-        enemy=self.get_enemy(characters)  
-        friend=self.get_friend(characters) 
-        if len(enemy)==0:   #enemy里面没有敌人
-            return  
-        rival=random.choice(enemy)      #用random.choice里面随机选敌人
-        self.hit(rival)
-
-
-class March(One):
-    def __init__(self):
-        super().__init__("三月七","列车")
-        self.attack=random.randint(1,5)
-    def greatmove(self, characters):
-        enemy = self.get_enemy(characters)
-        friend=self.get_friend(characters)
-        if len(enemy)==0:   #enemy里面没有敌人
-            return  
-        say("三月七使出了'冰刻箭雨之时'")
-        boss=max(enemy,key=lambda char:char.attack)     
-        boss.time=0
-        count=min(2,len(enemy))
-        others=[e for e in enemy if e !=boss]
-        stop=random.sample(others,min(count,len(others)))
-        for a  in stop:
-            a.time = 0 
-        print("---------------") 
-
-    def actions(self,characters):
-        enemy=self.get_enemy(characters)
-        friend=self.get_friend(characters)
+        enemy=[e for e in characters if e.side!=self.side and e.hp>0]   #这个比较难，e in characters标识characters里的单位，ifxxx表示符合这个的单位，用for表示挑选出来
+        friend=[f for f in characters if f.side==self.side and f.hp>0]  #同上
         if len(enemy)==0:   #enemy里面没有敌人
             return      #结束
-        boss=max(enemy,key=lambda char:char.attack)     #这个比较难，用lambda函数调用enemy里面的attack数值，再用max函数选出attack数值最高的数
-        dying_list=[char for char in friend if char.hp<boss.attack]     #选出friend中血量小于boss攻击力的，挑选在数组dying_list中
-        if len (dying_list)>0:          #假如有人快死了
-            dying=min(dying_list,key=lambda char:char.hp)       #用lambda函数调出hp数值，再用max函数选出hp最低的数，记为dying
-            self.addshield(dying)           #给dying加盾
-        else:           #假如没人快死
-            weak=min(enemy,key=lambda char:char.hp)     #用lambda和min函数选出敌人里面血量最小的，记为weak
-            self.hit(weak)          #打weak
+        if self.name=="三月七":     #这个比较难，假如是三月七
+            boss=max(enemy,key=lambda char:char.attack)     #这个比较难，用lambda函数调用enemy里面的attack数值，再用max函数选出attack数值最高的数
+            dying_list=[char for char in friend if char.hp<boss.attack]     #选出friend中血量小于boss攻击力的，挑选在数组dying_list中
+            if len (dying_list)>0:          #假如有人快死了
+                dying=min(dying_list,key=lambda char:char.hp)       #用lambda函数调出hp数值，再用max函数选出hp最低的数，记为dying
+                self.addshield(dying)           #给dying加盾
+            else:           #假如没人快死
+                weak=min(enemy,key=lambda char:char.hp)     #用lambda和min函数选出敌人里面血量最小的，记为weak
+                self.hit(weak)          #打weak
 
-class Dragon(One):
-    def __init__(self):
-         super().__init__("丹恒","列车")
-    def greatmove(self, characters):
-        enemy = self.get_enemy(characters)
-        friend=self.get_friend(characters)
-        if len(enemy) == 0:    # 加上这个检查
-            return
-        say("丹恒使出了'洞天幻化，长梦—觉'")
-        boss=max(enemy,key=lambda char:char.attack)
-        self.power=6
-        self.hit(boss)
-        self.power =2     #重击
-    print("---------------") 
+        elif self.name in ["开拓者","丹恒","杨叔"] or "幻胧" in self.name:       #假如是开拓者
+            rival=random.choice(enemy)      #用random.choice里面随机选敌人
+            self.hit(rival)     #打敌人
 
-class Star(One):
-    def __init__(self):
-        super().__init__("开拓者","列车")
-    def greatmove(self, characters):
-        enemy = self.get_enemy(characters)
-        friend=self.get_friend(characters)
-        if len(enemy) == 0:    # 加上这个检查
-            return
-        say("开拓者使出了'全胜·再见安打'")
-        for a in range(3):
-            alive_enemy = [e for e in characters if e.side != self.side and e.hp > 0]
-            if not alive_enemy: break # 没人了就别打了
-            rival = random.choice(alive_enemy)
+        elif self.name=="绝灭大君":       #假如是绝灭大君
+            rival=random.choice(enemy)
             self.hit(rival)
-        print("---------------") 
-
-class Yang(One):
-    def __init__(self):
-        super().__init__("瓦尔特·杨","列车")
-    def greatmove(self, characters):
-        enemy = self.get_enemy(characters)
-        friend=self.get_friend(characters)
-        if len(enemy) == 0:    # 加上这个检查
-            return
-        say("瓦尔特·杨使出了'拟似黑洞'")
-        buffer=max(friend,key=lambda char:char.attack)
-        buffer.time*=1.3     #拉条
-        print("---------------") 
-
-class Destroy(One):
-    def __init__(self):
-        super().__init__("绝灭大君","毁灭")
-        self.hp = 80        # 别忘了这些
-        self.hpmax = 80
-        self.summoned = False 
-    def greatmove(self, characters):
-        enemy = self.get_enemy(characters)
-        friend=self.get_friend(characters)
-        if len(enemy) == 0:    # 加上这个检查
-            return
-        say("绝灭大君派出了4个幻胧作为帮手")
-        for i in range(1,5):
-            helper=One(f"幻胧{i}","毁灭")
-            helper.hp=10
-            helper.hpmax = 20
-            helper.attack=5
-            helper.speed=30
-            characters.append(helper)
-        print("---------------") 
-    def actions(self, characters):
-        enemy = self.get_enemy(characters)
-        friend=self.get_friend(characters)
-        rival=random.choice(enemy)
-        self.hit(rival)
-        count=min (2,len(enemy))
-        others = [e for e in enemy if e != rival]
-        splash = random.sample(others, min(count, len(others)))
-        for target in splash:
+            count=min (2,len(enemy))
+            others = [e for e in enemy if e != rival]
+            splash = random.sample(others, min(count, len(others)))
+            for target in splash:
                 say(f"{self.name}对{target.name}造成了溅射")
                 self.power=1
                 self.hit(target)
                 self.power=2
                 
 
-star = Star()
-dargon = Dragon()
-destroy = Destroy()
-march = March()
-yang = Yang()
+star=One("开拓者","列车")#输出
+dargon=One("丹恒","列车")#2号输出
+destroy=One("绝灭大君","毁灭")#敌人
+march=One("三月七","列车")#加盾
+yang=One("杨叔","列车")#大招拉条
 
 train=[star,dargon,march,yang]   #列车组成一个组
 characters=[star,destroy,march,dargon,yang]      #建立4个角色的组

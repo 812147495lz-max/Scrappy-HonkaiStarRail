@@ -130,7 +130,6 @@ class Dragon(One):
         self.power=6
         self.hit(boss)
         self.power =2     #重击
-    print("---------------") 
 
 class Star(One):
     def __init__(self):
@@ -146,17 +145,16 @@ class Star(One):
             if not alive_enemy: break # 没人了就别打了
             rival = random.choice(alive_enemy)
             self.hit(rival)
-        print("---------------") 
 
 class Yang(One):
     def __init__(self):
-        super().__init__("瓦尔特·杨","列车")
+        super().__init__("杨叔","列车")
     def greatmove(self, characters):
         enemy = self.get_enemy(characters)
         friend=self.get_friend(characters)
         if len(enemy) == 0:    # 加上这个检查
             return
-        say("瓦尔特·杨使出了'拟似黑洞'")
+        say("杨叔使出了'拟似黑洞'")
         buffer=max(friend,key=lambda char:char.attack)
         buffer.time*=1.3     #拉条
         print("---------------") 
