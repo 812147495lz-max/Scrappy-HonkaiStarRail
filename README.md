@@ -18,14 +18,13 @@
 ### 版本迭代
 V1.1: 修复拉条排序逻辑，解决了可能卡死的问题，解决了出大招会显示多个分隔符的问题，加快了游戏速度，优化 AI 执行流
 V1.2：改掉了原本if套else的逻辑，改成了子类继承的方法，优化了代码结构
-
-V1.2：改掉了原本if套else的逻辑，改成了子类继承的方法，优化了代码结构
-
 V1.3将原本的执行逻辑和输出逻辑进行解耦，为下一步ui开发做好准备
+V2.0:将原本混乱的运算和输出彻底解耦，并增加时间条显示每一回合的行动顺序
 
 ### 运行图片
 
 
-<img width="433" height="1399" alt="image" src="https://github.com/user-attachments/assets/424b85ca-6590-4291-95f5-12a2d4c27bb7" />
+<img width="565" height="1500" alt="image" src="https://github.com/user-attachments/assets/2c8be46c-1a75-4559-8223-4d692ca6f10b" />
+
 
 
