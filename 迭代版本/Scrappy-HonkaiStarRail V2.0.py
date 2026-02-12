@@ -264,7 +264,7 @@ def display(movedisplay):
         say(f"三月七使出了'冰刻箭雨之时'")
         say(f"冻结了{'、'.join(targets)}")
     elif movedisplay["type"]=="dragon_great":
-        say("丹恒使出了'洞天幻化，长梦一觉'")
+        say("丹恒使出了'洞天幻化，长梦—觉'")
     elif movedisplay["type"]=="star_great":
         say("开拓者使出了'全胜·再见安打'")
     elif movedisplay["type"]=="yang_great":
