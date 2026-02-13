@@ -1,7 +1,7 @@
 import random   #引用random
 import time     #引用time
 import sys  #引用sys
-def say(text, speed=0.02, pause=0.2):   #定义say函数，定义
+def say(text, speed=0.01, pause=0.1):   #定义say函数，定义
     for char in text:   #for循环，在text中的每个字母
         sys.stdout.write(char)  #写出字母
         sys.stdout.flush()  #强制输出字母
@@ -280,10 +280,19 @@ def display(movedisplay):
             print(f"{name_str} |{item['timebar']}| {item['time']}/200")
         print("—"*28)
         time.sleep(1)
-        return
+    elif movedisplay["type"] == "dwin":
+        say("星穹列车组被绝灭大君打死了")   #字面意思
+        say(f"绝灭大君一共对列车组造成了{movedisplay['allattack']}点伤害")
+    elif movedisplay["type"] == "twin":
+        say("星穹列车组把绝灭大君打死了")       #字面意思
+        say(f"列车组对绝灭大君造成了{movedisplay['allattack']}点伤害")
+    elif movedisplay["type"] == "stats":
+        for c in (characters):          #用for循环遍历4个角色
+            say(f"{c.name}的血:{c.hp}，攻:{c.attack},速:{c.speed}，防:{c.defend}") 
+
     print("---------------")        #画分割线
 def actionbar(char):    #定义actionbar函数，char是参数
-    timeline=sorted([c for c in characters if c.hp>0],key=lambda c:c.time,reverse=True)  #用sorted函数，对hp>0的角色，按照time排序
+    timeline=sorted([c for c in char if c.hp>0],key=lambda c:c.time,reverse=True)  #用sorted函数，对hp>0的角色，按照time排序
     timebar=[]
     for c in timeline:   #for循环
         length = 15
@@ -313,16 +322,88 @@ def cjk_ljust(text, width):
     return text + ' ' * (width - len(text) - count)
 
 
+class Game:
+    def __init__(self,characters):
+        self.characters=characters
+        self.train=[c for c in self.characters if c.side == "列车"]
+        self.destroy=[c for c in self.characters if c.side == "毁灭"]
+        if self.destroy:
+            self.boss = self.destroy[0]
+    
+    def stats(self):   #定义run函数，characters是参数
+        result={"type":"stats"}
+        display(result)
+        input("\n按回车键继续")  
+        return result
+    def game_over(self):
+        if all (t.hp<=0 for t in self.train):
+            allattack = self.boss.allattack
+            result={"type":"dwin",
+                "allattack":allattack
+            }
+            return result
+        for e in self.destroy:
+            if isinstance(e,Destroy) and e.hp<=0:   #isinstance用来判断e是否是Destroy的实例
+                allattack=sum(t.allattack for t in self.train)
+                result={"type":"twin",
+                    "allattack":allattack
+                    }
+
+                return result
+        return None
+    def tgreatmove(self):
+        for t in (self.train):
+            if t.energy>20 and t.hp>0:
+                t.greatmove(self.characters)
+                t.energy=0
+    
+    def dgreatmove(self):
+        for e in self.destroy:
+            if isinstance(e, Destroy) and not e.summoned:
+                if e.hp < e.hpmax * 0.5:
+                    e.greatmove(self.characters)
+                    e.summoned =True
+    
+    def time(self):
+        for c in (self.characters):
+            if c.hp>0:
+                c.time=c.time+c.speed
+
+    def move(self):
+        while True:
+            alive=[c for c in self.characters if c.hp>0]
+            if not alive:
+                break
+            current=max(alive,key=lambda char:char.time) 
+            if current.time>=200 and current.hp>0:   #time大于200且没死的情况下
+                current.time =current.time-200      #减200
+                current.actions(self.characters)  
+            else:   #没有time大于100的情况下
+                break 
+    def loop(self): 
+        self.stats()
+        while True: 
+            self.time()
+            actionbar(self.characters) 
+            self.tgreatmove()
+            self.dgreatmove()
+            self.move()
+            result=self.game_over()
+            if result :
+                display(result)  #如果有游戏结束
+                break
+
 star = Star()
 dragon = Dragon()
 destroy = Destroy()
 march = March()
 yang = Yang()
-
-train=[star,dragon,march,yang]   #列车组成一个组
 characters=[star,destroy,march,dragon,yang]      #建立4个角色的组
 
-i=1         #计数器
+game = Game(characters)
+game.loop()
+
+""""i=1         #计数器
 
 for c in (characters):          #用for循环遍历4个角色
     say(f"{c.name}的血:{c.hp}，攻:{c.attack},速:{c.speed}，防:{c.defend}")      #用之前定义的say函数输出角色的数值
@@ -361,4 +442,4 @@ if all(player.hp<=0 for player in train):      #列车组死光了
     say(f"绝灭大君一共对列车组造成了{destroy.allattack}点伤害")     #字面意思
 else:   #不是列车组死光就是绝灭大君死光
     say("星穹列车组把绝灭大君打死了")       #字面意思
-    say(f"列车组对绝灭大君造成了{sum(t.allattack for t in train)}点伤害")       #字面意思
+    say(f"列车组对绝灭大君造成了{sum(t.allattack for t in train)}点伤害")       #字面意思"""
