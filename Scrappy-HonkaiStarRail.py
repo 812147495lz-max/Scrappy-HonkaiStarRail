@@ -1,13 +1,31 @@
 import random   #引用random
 import time     #引用time
 import sys  #引用sys
+
+COLORS = {
+    "三月七":       "\033[38;2;100;200;255m",
+    "丹恒":         "\033[38;2;80;220;130m",
+    "开拓者":       "\033[38;2;170;170;170m",
+    "瓦尔特杨":     "\033[38;2;243;255;50m",
+    "纳努克":       "\033[38;2;237;182;18m",
+    "幻胧":         "\033[38;2;45;86;77m",
+} 
+RESET = "\033[0m"
+HP_COLOR = "\033[38;2;200;0;0m"
+SHIELD_COLOR = "\033[38;2;36;30;214m"
+ATTACK_COLOR= "\033[38;2;214;116;30m"
+
 def say(text, speed=0.01, pause=0.1):   #定义say函数，定义
+    global COLORS, RESET
+    for name, color in COLORS.items():
+        text = text.replace(name, f"{color}{name}{RESET}")
     for char in text:   #for循环，在text中的每个字母
         sys.stdout.write(char)  #写出字母
         sys.stdout.flush()  #强制输出字母
         time.sleep(speed)   #每个字母之后停留speed的时间
     print() #换行
     time.sleep(pause)   #停留pause秒
+
 
 class One:  #定义One类
     def __init__(self,name,side):   #class后必备的def    
@@ -24,6 +42,7 @@ class One:  #定义One类
         self.power=2
         self.summoned = False
         self.hpmax=self.hp  #最大血量设置为开始血量（为图形化做准备）
+        self.color = "\033[0m"
     def get_enemy(self,characters):
         enemy = [e for e in characters if e.side!=self.side and e.hp>0] #
         return enemy    
@@ -44,7 +63,7 @@ class One:  #定义One类
                 "attacker":self.name,   #进攻者
                 "rival":rival.name,     #被攻击者
                 "shutter":False,        #打破盾牌
-                "shield":rival.shield,   #盾的数值
+                "shield":rival.shield,
             }
             self.damage=(random.randint(0,self.attack))*self.power   #真实攻击值是攻击值到0中的一个随机数
             self.boom=random.uniform(0,1)   #暴击率是通过random.uniform取的一个小数
@@ -88,7 +107,7 @@ class One:  #定义One类
                 "caster":self.name,   #自己
                 "friend":friend.name,     #加盾者
                 "amount":self.amount,        #加盾数量
-                "shield":friend.shield,   #被加的数值
+                "shield":friend.shield, 
             }    
         return result   #加盾结算
     def greatmove(self,characters):
@@ -101,12 +120,11 @@ class One:  #定义One类
         rival=random.choice(enemy)      #用random.choice里面随机选敌人
         hitresult=self.hit(rival)
         display(hitresult)
-
-
 class March(One):
     def __init__(self):
         super().__init__("三月七","列车")
         self.attack=random.randint(1,5)
+        self.color="\033[38;2;100;200;255m"
     def greatmove(self, characters):
         enemy = self.get_enemy(characters)
         friend=self.get_friend(characters)
@@ -123,6 +141,7 @@ class March(One):
                 "target1":boss.name,
                 "target2":stop[0].name if len(stop)>0 else None,
                 "target3":stop[1].name if len(stop)>1 else None,
+
                 }
         display(result)
         boss.time=0
@@ -135,7 +154,7 @@ class March(One):
         if len(enemy)==0:   #enemy里面没有敌人
             return      #结束
         boss=max(enemy,key=lambda char:char.attack)     #这个比较难，用lambda函数调用enemy里面的attack数值，再用max函数选出attack数值最高的数
-        dying_list=[char for char in friend if char.hp<boss.attack]     #选出friend中血量小于boss攻击力的，挑选在数组dying_list中
+        dying_list=[char for char in friend if char.hp<4*boss.attack]     #选出friend中血量小于boss攻击力的，挑选在数组dying_list中
         if len (dying_list)>0:          #假如有人快死了
             dying=min(dying_list,key=lambda char:char.hp)       #用lambda函数调出hp数值，再用max函数选出hp最低的数，记为dying
             addshield=self.addshield(dying)
@@ -202,7 +221,7 @@ class Yang(One):
         
 class Destroy(One):
     def __init__(self):
-        super().__init__("绝灭大君","毁灭")
+        super().__init__("纳努克","毁灭")
         self.hp = 200        # 别忘了这些
         self.hpmax = self.hp
         self.summoned = False 
@@ -250,28 +269,31 @@ def display(movedisplay):
         if movedisplay["blocked"]==True:     #如果被挡住
             say (f"{movedisplay['attacker']}的攻击被{movedisplay['rival']}挡住了")
         elif movedisplay["shutter"]==True:       #如果盾碎是true
-            say(f"{movedisplay['attacker']}对{movedisplay['rival']}打出了{movedisplay['damage']}点攻击，打破了盾牌\n{movedisplay['rival']}还剩{movedisplay['hp']}点血")
+            say(f"{movedisplay['attacker']}对{movedisplay['rival']}打出了{ATTACK_COLOR}{movedisplay['damage']}{RESET}点攻击，打破了盾牌")
+            say(f"{movedisplay['rival']}还剩{HP_COLOR}{movedisplay['hp']}{RESET}点血")
         elif movedisplay["shield"]>0:      #如果还有盾
-            say(f"{movedisplay['attacker']}对{movedisplay['rival']}打出了{movedisplay['damage']}点攻击，未能击穿盾\n{movedisplay['rival']}还剩{movedisplay['hp']}点血{movedisplay['shield']}点盾")
+            say(f"{movedisplay['attacker']}对{movedisplay['rival']}打出了{ATTACK_COLOR}{movedisplay['damage']}{RESET}点攻击，未能击穿盾")
+            say(f"{movedisplay['rival']}还剩{HP_COLOR}{movedisplay['hp']}{RESET}点血{movedisplay['shield']}{RESET}点盾")
         else:   #如果没有盾牌
-            say(f"{movedisplay['attacker']}对{movedisplay['rival']}打出了{movedisplay['damage']}点攻击\n{movedisplay['rival']}还剩{movedisplay['hp']}点血")
+            say(f"{movedisplay['attacker']}对{movedisplay['rival']}打出了{ATTACK_COLOR}{movedisplay['damage']}{RESET}点攻击")
+            say(f"{movedisplay['rival']}还剩{HP_COLOR}{movedisplay['hp']}{RESET}点血")
         if movedisplay.get("killed")==True:    #如果被杀死了
             say(f"{movedisplay['rival']}被{movedisplay['attacker']}打死了")
     elif movedisplay["type"]=="shield":
-        say(f"{movedisplay['caster']}给{movedisplay['friend']}加了{movedisplay['amount']}点盾，现在有{movedisplay['shield']}点盾") 
+        say(f"{movedisplay['caster']}给{movedisplay['friend']}加了{movedisplay['amount']}点盾，现在有{SHIELD_COLOR}{movedisplay['shield']}{RESET}点盾") 
     elif movedisplay["type"]=="march_great":    #如果type是march_great  
         targets = [t for t in [movedisplay['target1'], movedisplay['target2'], movedisplay['target3']] if t]
-        say(f"三月七使出了'冰刻箭雨之时'")
+        say(f"三月七\033[38;2;100;200;255m使出了'冰刻箭雨之时'\033[0m")
         say(f"冻结了{'、'.join(targets)}")
     elif movedisplay["type"]=="dragon_great":
-        say("丹恒使出了'洞天幻化，长梦一觉'")
+        say(f"丹恒\033[38;2;80;220;130m使出了'洞天幻化，长梦一觉'\033[0m")
     elif movedisplay["type"]=="star_great":
-        say("开拓者使出了'全胜·再见安打'")
+        say("开拓者\033[38;2;196;196;196m使出了'全胜·再见安打'\033[0m")
     elif movedisplay["type"]=="yang_great":
-        say("瓦尔特杨使出了'拟似黑洞'")
+        say("瓦尔特杨\033[38;2;243;255;50m使出了'拟似黑洞'")
         say(f"{movedisplay['target']}被加速了")
     elif movedisplay["type"]=="destroy_great":
-        say("绝灭大君派出了4个幻胧作为帮手")
+        say("纳努克\033[38;2;237;182;18m派出了4个幻胧\033[38;2;237;182;18m作为帮手'\033[0m")
     elif movedisplay["type"] == "timebar":
         print("\n" + "—"*10 + " 行动序列 " + "—"*10)
         for item in movedisplay["data"]:
@@ -281,11 +303,11 @@ def display(movedisplay):
         print("—"*28)
         time.sleep(1)
     elif movedisplay["type"] == "dwin":
-        say("星穹列车组被绝灭大君打死了")   #字面意思
-        say(f"绝灭大君一共对列车组造成了{movedisplay['allattack']}点伤害")
+        say("星穹列车组被纳努克打死了")   #字面意思
+        say(f"纳努克一共对列车组造成了{movedisplay['allattack']}点伤害")
     elif movedisplay["type"] == "twin":
-        say("星穹列车组把绝灭大君打死了")       #字面意思
-        say(f"列车组对绝灭大君造成了{movedisplay['allattack']}点伤害")
+        say("星穹列车组把纳努克打死了")       #字面意思
+        say(f"列车组对纳努克造成了{movedisplay['allattack']}点伤害")
     elif movedisplay["type"] == "stats":
         for c in (characters):          #用for循环遍历4个角色
             say(f"{c.name}的血:{c.hp}，攻:{c.attack},速:{c.speed}，防:{c.defend}") 
@@ -402,6 +424,7 @@ characters=[star,destroy,march,dragon,yang]      #建立4个角色的组
 
 game = Game(characters)
 game.loop()
+input("按回车键退出")
 
 """"i=1         #计数器
 
@@ -438,8 +461,8 @@ while any(player.hp>0 for player in train) and destroy.hp>0:    #用any查看pla
         if destroy.hp<=0 or all(player.hp<=0 for player in train):    #有一方死光了
                     break       #结束循环
 if all(player.hp<=0 for player in train):      #列车组死光了
-    say("星穹列车组被绝灭大君打死了")   #字面意思
-    say(f"绝灭大君一共对列车组造成了{destroy.allattack}点伤害")     #字面意思
-else:   #不是列车组死光就是绝灭大君死光
-    say("星穹列车组把绝灭大君打死了")       #字面意思
-    say(f"列车组对绝灭大君造成了{sum(t.allattack for t in train)}点伤害")       #字面意思"""
+    say("星穹列车组被纳努克打死了")   #字面意思
+    say(f"纳努克一共对列车组造成了{destroy.allattack}点伤害")     #字面意思
+else:   #不是列车组死光就是纳努克死光
+    say("星穹列车组把纳努克打死了")       #字面意思
+    say(f"列车组对纳努克造成了{sum(t.allattack for t in train)}点伤害")       #字面意思"""
